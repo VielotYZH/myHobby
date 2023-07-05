@@ -40,6 +40,7 @@ void sort(struct element* head, int c);
 int* toArray(int num, ...);
 char* toString(struct element* head);
 int lastIndexOf(struct element* head, int obj);
+bool retainAll(struct element* head, struct element* c);
 
 void main() {
 	void println(struct element* head);
@@ -49,15 +50,21 @@ void main() {
 	add(2, head, 7);
 	add(2, head, 18);
 	add(2, head, 20);
-	add(2, head, 18);
-	printf("网站列表：");
+	
+	printf("ArrayList 1：");
 	println(head);
 
-	int position1 = lastIndexOf(head, 18);
-	printf("18最后出现的位置：%d\n", position1);
+	struct element* sites2 = newArrayList();
 
-	int position2 = lastIndexOf(head, 23);
-	printf("23最后出现的位置：%d\n", position2);
+	add(2, sites2, 23);
+	add(2, sites2, 18);
+	add(2, sites2, 7);
+	printf("ArrayList 2：");
+	println(sites2);
+
+	retainAll(head, sites2);
+	printf("保留的元素：");
+	println(head);
 }
 
 //打印集合(临时)
@@ -341,8 +348,8 @@ bool removeAll(struct element* head, struct element* c) {
 
 	while (q->next != NULL) {
 		q = q->next;
-		struct element* p = head;
 
+		struct element* p = head;
 		int index = indexOf(p, q->data);
 
 		if (index != -1) {
@@ -625,4 +632,31 @@ int lastIndexOf(struct element* head, int obj) {
 	}
 
 	return result;
+}
+
+//保留head中在指定集合中也存在的那些元素，也就是删除指定集合中不存在的那些元素
+bool retainAll(struct element* head, struct element* c) {
+	isNull(head);
+	isNull(c);
+
+	struct element* temp = head->next;
+	while (temp != NULL) {
+		int index = indexOf(c, temp->data);
+		if (index == -1) {
+			//如果该元素不在指定集合中
+			struct element* p = temp;
+			temp = temp->next;
+
+			//删除p指向的结点
+			p->pre->next = p->next;
+			if (p->next != NULL) {
+				p->next->pre = p->pre;
+			}
+		}
+		else {
+			temp = temp->next;
+		}
+	}
+
+	return true;
 }
