@@ -78,21 +78,19 @@ public class rip {
         }
         int token;
         String buffer;
-        while (sc.hasNext()) {
-            for (RoutingInfo[] routingInfos : routingTable) {
-                for (int j = 0; j < routingInfos.length; j++) {
-                    try {
-                        token = sc.nextInt();
-                        routingInfos[j].setCost(token);
-                    } catch (InputMismatchException e) {
-                        buffer = sc.next();
-                        if (buffer.equals("i")) {
-                            routingInfos[j].setCost(INFINITY);
-                        }
+        for (RoutingInfo[] routingInfos : routingTable) {
+            for (int j = 0; j < routingInfos.length; j++) {
+                try {
+                    token = sc.nextInt();
+                    routingInfos[j].setCost(token);
+                } catch (InputMismatchException e) {
+                    buffer = sc.next();
+                    if (buffer.equals("i")) {
+                        routingInfos[j].setCost(INFINITY);
                     }
-                    routingInfos[j].setDestination(j);
-                    routingInfos[j].setNextHop(routingInfos[j].getCost() == INFINITY || routingInfos[j].getCost() == 0 ? routingInfos.length : j);
                 }
+                routingInfos[j].setDestination(j);
+                routingInfos[j].setNextHop(routingInfos[j].getCost() == INFINITY || routingInfos[j].getCost() == 0 ? routingInfos.length : j);
             }
         }
         return routingTable;

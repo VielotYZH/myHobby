@@ -21,29 +21,26 @@ void initRoutingTable(FILE *fp)
 {
 	int token, sn;
 	sn = fscanf(fp, "%d", &token);
-	while (!feof(fp))
+	for (int i = 0; i < NODE_NUMBER; i++)
 	{
-		for (int i = 0; i < NODE_NUMBER; i++)
+		for (int j = 0; j < NODE_NUMBER; j++)
 		{
-			for (int j = 0; j < NODE_NUMBER; j++)
+			if (sn != 0)
 			{
-				if (sn != 0)
-				{
-					routingTable[i][j].cost = token;
-				}
-				else
-				{
-					char buffer;
-					fscanf(fp, "%c", &buffer);
-					if (buffer == 'i')
-					{
-						routingTable[i][j].cost = INFINITY;
-					}
-				}
-				routingTable[i][j].destination = j;
-				routingTable[i][j].nextHop = routingTable[i][j].cost == INFINITY || routingTable[i][j].cost == 0 ? NODE_NUMBER : j;
-				sn = fscanf(fp, "%d", &token);
+				routingTable[i][j].cost = token;
 			}
+			else
+			{
+				char buffer;
+				fscanf(fp, "%c", &buffer);
+				if (buffer == 'i')
+				{
+					routingTable[i][j].cost = INFINITY;
+				}
+			}
+			routingTable[i][j].destination = j;
+			routingTable[i][j].nextHop = routingTable[i][j].cost == INFINITY || routingTable[i][j].cost == 0 ? NODE_NUMBER : j;
+			sn = fscanf(fp, "%d", &token);
 		}
 	}
 }
@@ -97,7 +94,7 @@ void sendRoutingTable()
 
 void main()
 {
-	FILE *fp = fopen("temp.txt", "r");
+	FILE *fp = fopen("test.txt", "r");
 	initRoutingTable(fp);
 	fclose(fp);
 	while (ifChanged)

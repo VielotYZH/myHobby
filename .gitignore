@@ -361,3 +361,19 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+C/**/*.exe
+C/**/temp.*
+
+C/otherinspiration/
+
+C/test.c
+
+Java/out/
+Java/src/pachongNOT/
+Java/**/temp.*
+Java/*.iml
+
+.idea/
+Go/**/test.go
+Go/*.mod
