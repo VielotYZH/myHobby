@@ -115,7 +115,7 @@ void main()
     char *source = readFile(f);
     char *coding = encode(source);
     char *decoding = decode(coding);
-    printf("source:\t%s\n", source);
-    printf("coding:\t%s\n", coding);
+    printf("source:\t\t%s\n", source);
+    printf("coding:\t\t%s\n", coding);
     printf("decoding:\t%s\n", decoding);
 }
