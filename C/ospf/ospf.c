@@ -1,180 +1,199 @@
+/*
+Use numbers instead of letters as node numbers;
+The meaning of each line in the entered text:
+Local node neighbor cost
+*/
+
 #include<stdio.h>
 #include<stdlib.h>
 
-#define LTCN_SIZE sizeof(LTCN)
 #define NODE_SIZE sizeof(Node)
+#define LSP_SIZE sizeof(LSP)
+#define TC_SIZE sizeof(TC)
 
-typedef struct LTCN{
+typedef struct LSP{
+    int neighbor;
+    int cost;
+    struct LSP* next;
+} LSP;//Take the table in the LSP as itself
+typedef struct TC{
     int destination;
     int cost;
-    int nextHop;
-    struct LTCN* next;
-}LTCN;// LSP,confirmed,tentative node
+    int nestHop;
+    struct TC* next;
+} TC;
 typedef struct Node{
-    int nodeID;
-    LTCN* LSP;
-    LTCN* confirmed;
-    LTCN* tentative;
+    int number;
+    LSP* LSPList;
+    TC* tentative;
+    TC* confirmed;
     struct Node* next;
-}Node;
+} Node;
 
-Node* initNode(){
-    Node* p = (Node*)malloc(NODE_SIZE);
-    p->next=NULL;
-    p->LSP = (LTCN*)malloc(LTCN_SIZE);
-    p->LSP->next = NULL;
-    p->confirmed = (LTCN*)malloc(LTCN_SIZE);
-    p->confirmed->next = NULL;
-    p->tentative = (LTCN*)malloc(LTCN_SIZE);
-    p->tentative->next = NULL;
-    return p;
-}
-
-Node* initNodeTable(FILE* f){
-    Node* head = (Node*)malloc(NODE_SIZE);
-    head->next=NULL;
-    int current = -1;
-    int ID,neighbour,cost;
+Node* initNodeList(FILE* f){
+    int number,neighbor,cost;
+    Node* list = (Node*)malloc(NODE_SIZE);
+    list->LSPList=NULL;
+    list->tentative=NULL;
+    list->confirmed=NULL;
+    list->next=NULL;
+    Node* p=list;
+    int current = 0;
+    LSP* r = NULL;//Always refers to the last node in the LSP table
     while(!feof(f)){
-        fscanf(f,"%d %d %d",&ID,&neighbour,&cost);
-        if(current != ID){
-            current = ID;
-            Node* p = initNode();
-            p->nodeID = ID;
-            p->LSP->destination = ID;//this ID show masterID
-            LTCN* q = (LTCN*)malloc(LTCN_SIZE);
-            q->destination = neighbour;
-            q->cost = cost;
-            q->nextHop = neighbour;
-            q->next = p->LSP->next;
-            p->LSP->next=q;
-            p->next = head->next;
-            head->next = p;
+        fscanf(f,"%d %d %d",&number,&neighbor,&cost);
+        if(current!=number){
+            current = number;
+            Node* q = (Node*)malloc(NODE_SIZE);
+            q->number=number;
+
+            q->LSPList=(LSP*)malloc(LSP_SIZE);
+            q->LSPList->neighbor = number;//The node number is placed in the head node
+            q->LSPList->next=(LSP*)malloc(LSP_SIZE);
+            r = q->LSPList->next;
+            r->neighbor = neighbor;
+            r->cost = cost;
+            r->next = NULL;
+
+            q->tentative = (TC*)malloc(TC_SIZE);
+            q->tentative->next=NULL;
+
+            q->confirmed = (TC*)malloc(TC_SIZE);
+            q->confirmed->next=NULL;
+
+            q->next=NULL;
+            p->next = q;
+            p = q;
         }else{
-            LTCN* q = (LTCN*)malloc(LTCN_SIZE);
-            q->destination = neighbour;
-            q->cost = cost;
-            q->nextHop = neighbour;
-            q->next = head->next->LSP->next;
-            head->next->LSP->next = q;
+            r->next = (LSP*)malloc(LSP_SIZE);
+            r->next->neighbor = neighbor;
+            r->next->cost = cost;
+            r->next->next = NULL;
+            r = r->next;
         }
     }
-    return head;
+    return list;
 }
 
-Node* determineNext(Node* nodeTable, int ID){
-    Node* p = nodeTable->next;
+Node* locateNode(Node* list,int number){
+    Node* p = list->next;
     while(p!=NULL){
-        if(p->nodeID == ID){
+        if(p->number==number){
             return p;
         }
         p=p->next;
     }
-    printf("determineNext fail\n");
+    printf("locateNode error\n");
     exit(1);
 }
 
-LTCN* ifExist(LTCN* TCL, int ID){
-    LTCN* p =TCL->next;
-    while(p != NULL){
-        if(p->destination==ID){
+void addNodeToTCList(TC* list,int destination,int cost,int nextHop){
+    TC* p = list;
+    while(p->next!=NULL){
+        p=p->next;
+    }
+    p->next = (TC*)malloc(TC_SIZE);
+    p->next->destination = destination;
+    p->next->cost = cost;
+    p->next->nestHop = nextHop;
+    p->next->next = NULL;
+}
+
+LSP* locateLSPNode(Node* list,int number){
+    Node* p = list->next;
+    while(p!=NULL){
+        if(p->number==number){
+            return p->LSPList;
+        }
+        p=p->next;
+    }
+    printf("locateLSPNode error\n");
+    exit(1);
+}
+
+TC* ifExist(int number,TC* list){
+    TC* p = list->next;
+    while(p!=NULL){
+        if(p->destination==number){
             return p;
         }
         p=p->next;
     }
-   return NULL;
+    return NULL;
 }
 
-int determineNextHop(Node* node, int ID){
-    Node* p = node->next;
-    while(p!=NULL){
-        LTCN* q = p->LSP->next;
-        while(q!=NULL){
-            if(q->destination==ID){
-                return ID;
-            }
-            q=q->next;
+//Pick the least cost record from the tentative and move it into confirmed
+void moveTCNode(TC* confirmed,TC* tentative){
+    TC *q = tentative;
+    TC* minCost = q->next;
+    q=q->next->next;
+    while(q!=NULL){
+        if(q->cost<minCost->cost){
+            minCost = q;
         }
-        q = p->confirmed->next;
-        while(q!=NULL){
-            if(q->destination==ID){
-                return ID;
-            }
-            q=q->next;
-        }
+        q=q->next;
     }
-    printf("determineNextHop fail\n");
-    exit(1);
+    addNodeToTCList(confirmed,minCost->destination,minCost->cost,minCost->nestHop);
+    q = tentative;
+    while(q->next!=minCost){
+        q=q->next;
+    }
+    q->next=minCost->next;
+    free(minCost);
 }
 
-void changeTC(Node* myNode, LTCN* nextLSP){
-    LTCN* p = nextLSP->next;
-    while(p != NULL){
-        LTCN* temp = ifExist(myNode->tentative,p->destination);
-        if(!(ifExist(myNode->confirmed,p->destination)||temp)){
-            LTCN* q = (LTCN*)malloc(LTCN_SIZE);
-            q->destination = p->destination;
-            q->cost = p->cost;
-            q->nextHop = determineNextHop(myNode,nextLSP->destination);
-            q->next = myNode->tentative->next;
-            myNode->tentative->next = q;
-        }else if(temp){
-            int newCost = ifExist(myNode->confirmed,nextLSP->destination)+p->cost;
-            if(newCost<temp->cost){
-                temp->cost = newCost;
-                temp->nextHop = determineNextHop(myNode,nextLSP->destination);
-            }
-        }
-        p=p->next;
-    }
-}
-
-void moveRecord(LTCN* tentative, LTCN* confirmed){
-    if(tentative->next==NULL){
-        return;
-    }
-    LTCN* p = tentative->next;
-    int minCost = p->cost;
-    while(p!=NULL){
-        if(p->cost<minCost){
-            minCost=p->cost;
-        }
-        p=p->next;
-    }
-    p = tentative;
-    while(p!=NULL){
-        if(p->next->cost==minCost){
-            break;
-        }
-        p=p->next;
-    }
-    LTCN* q = p->next;
-    p->next = q->next;
-    q->next = confirmed->next;
-    confirmed->next = q;
-}
-
-void createRoutingTable(Node* nodeTable, Node* myNode){
-    LTCN* p = (LTCN*)malloc(LTCN_SIZE);
-    p->destination = myNode->nodeID;
-    p->cost = 0;
-    p->nextHop = -1;//-1 show null
-    p->next = myNode->confirmed->next;
-    myNode->confirmed->next = p;
+void createRoutineTable(Node* list,int number){
+    Node* q = locateNode(list,number);
+    q->tentative = (TC*)malloc(TC_SIZE);
+    q->tentative->next=NULL;
+    q->confirmed = (TC*)malloc(TC_SIZE);
+    q->confirmed->next = NULL;
+    TC* cp = q->confirmed;//Always refers to the last node in the confirmed table
+    addNodeToTCList(q->confirmed,q->number,0,0); 
+    cp = cp->next;
     do{
-        moveRecord(myNode->tentative,myNode->confirmed);
-        Node* next = determineNext(nodeTable,myNode->confirmed->next->destination);
-        changeTC(myNode,next->LSP);
-    }while(myNode->tentative->next!=NULL);
+        LSP* r = locateLSPNode(list,cp->destination)->next;
+        while(r!=NULL){
+            int newCost = cp->cost+r->cost;
+            TC* s = ifExist(r->neighbor,q->tentative);
+            if(!(ifExist(r->neighbor,q->confirmed)||s)){
+                addNodeToTCList(q->tentative,r->neighbor,newCost,cp->nestHop==0?r->neighbor:cp->nestHop);
+            }else if(s&&newCost<s->cost){
+                s->cost = newCost;
+                s->nestHop = cp->nestHop==0?r->neighbor:cp->nestHop;
+            }
+            r=r->next;
+        }
+        if(q->tentative->next==NULL){
+            break;
+        }else{
+            moveTCNode(q->confirmed,q->tentative);
+            cp = cp->next;
+        }
+    }while(1);
 }
 
 void main(){
     FILE* f = fopen("test.txt","r");
-    Node* nodeTable = initNodeTable(f);
-    fclose(f);
-    Node* p = nodeTable->next;
+    if(f==NULL){
+        printf("file is not exist\n");
+        exit(1);
+    }
+    Node* list = initNodeList(f);
+    Node* p = list->next;
     while(p!=NULL){
-        createRoutingTable(nodeTable,p);
+        createRoutineTable(list,p->number);
+        TC* q = p->confirmed->next;
+        printf("-------confirmed of node %c-------\n",p->number+64);
+        while(q!=NULL){
+            printf("(%c,%d,",q->destination+64,q->cost);
+            if(q->nestHop==0){
+                printf("%c)\n",'-');
+            }else{
+                printf("%c)\n",q->nestHop+64);
+            }
+            q=q->next;
+        }
         p=p->next;
     }
 }
