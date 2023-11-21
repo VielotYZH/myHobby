@@ -22,7 +22,7 @@ typedef struct TC
 {
     int destination;
     int cost;
-    int nestHop;
+    int nextHop;
     struct TC *next;
 } TC;
 typedef struct Node
@@ -94,7 +94,7 @@ void addNodeToTCList(TC *list, int destination, int cost, int nextHop)
     p->next = (TC *)malloc(TC_SIZE);
     p->next->destination = destination;
     p->next->cost = cost;
-    p->next->nestHop = nextHop;
+    p->next->nextHop = nextHop;
     p->next->next = NULL;
 }
 
@@ -109,8 +109,7 @@ LSP *locateLSPNode(Node *list, int number)
         }
         p = p->next;
     }
-    printf("locateLSPNode error\n");
-    exit(1);
+    assert(p!=NULL);
 }
 
 TC *ifExist(int number, TC *list)
@@ -141,7 +140,7 @@ void moveTCNode(TC *confirmed, TC *tentative)
         }
         q = q->next;
     }
-    addNodeToTCList(confirmed, minCost->destination, minCost->cost, minCost->nestHop);
+    addNodeToTCList(confirmed, minCost->destination, minCost->cost, minCost->nextHop);
     q = tentative;
     while (q->next != minCost)
     {
@@ -165,12 +164,12 @@ void createRoutineTable(Node *list, Node* q)
             TC *s = ifExist(r->neighbor, q->tentative);
             if (!(ifExist(r->neighbor, q->confirmed) || s))
             {
-                addNodeToTCList(q->tentative, r->neighbor, newCost, cp->nestHop == 0 ? r->neighbor : cp->nestHop);
+                addNodeToTCList(q->tentative, r->neighbor, newCost, cp->nextHop == 0 ? r->neighbor : cp->nextHop);
             }
             else if (s && newCost < s->cost)
             {
                 s->cost = newCost;
-                s->nestHop = cp->nestHop == 0 ? r->neighbor : cp->nestHop;
+                s->nextHop = cp->nextHop == 0 ? r->neighbor : cp->nextHop;
             }
             r = r->next;
         }
@@ -204,13 +203,13 @@ void main()
         while (q != NULL)
         {
             printf("(%c,%d,", q->destination + 64, q->cost);
-            if (q->nestHop == 0)
+            if (q->nextHop == 0)
             {
                 printf("%c)\n", '-');
             }
             else
             {
-                printf("%c)\n", q->nestHop + 64);
+                printf("%c)\n", q->nextHop + 64);
             }
             q = q->next;
         }
