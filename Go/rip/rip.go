@@ -73,11 +73,11 @@ func isAdjacent(routingTable [][]RoutingInfo, nodeNum1 int, nodeNum2 int) bool {
 	return false
 }
 
-func receiveRoutingTable(routingTable [][]RoutingInfo, senderNum int, receicerNum int, senderInfo []int) {
+func receiveRoutingTable(routingTable [][]RoutingInfo, senderNum int, receiverNum int, senderInfo []int) {
 	for i := 0; i < len(routingTable); i++ {
-		if routingTable[receicerNum][i].cost > routingTable[receicerNum][senderNum].cost+senderInfo[i] {
-			routingTable[receicerNum][i].cost = routingTable[receicerNum][senderNum].cost + senderInfo[i]
-			routingTable[receicerNum][i].nextHop = senderNum
+		if routingTable[receiverNum][i].cost > routingTable[receiverNum][senderNum].cost+senderInfo[i] {
+			routingTable[receiverNum][i].cost = routingTable[receiverNum][senderNum].cost + senderInfo[i]
+			routingTable[receiverNum][i].nextHop = senderNum
 			ifChanged = true
 		}
 	}

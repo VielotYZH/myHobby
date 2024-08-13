@@ -186,7 +186,7 @@ int runOPT(bool (*p)(char[], int, int, char[], int), bool printProcedure, char p
         printf("pageMissing\n");
     }
     for(int i = 0 ; i < pagesLength ; i++){
-        bool missingPage = p(pages, PAGES_NUMBER, i, pageFrames, PAGE_FRAMES_NUMBER);
+        bool missingPage = p(pages, pagesLength, i, pageFrames, PAGE_FRAMES_NUMBER);
         if(printProcedure){
             printPageFrames(pageFrames, PAGE_FRAMES_NUMBER);
             if(missingPage){

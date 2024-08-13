@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "*.asm": "plaintext",
+        "stdbool.h": "c",
+        "stdlib.h": "c"
+    }
+}
