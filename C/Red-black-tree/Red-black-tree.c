@@ -43,30 +43,27 @@ const char get_color(Color color){
 }
 
 // 逆时针旋转90°打印二叉树
-void printTree(Node *root, int *level){
+void printTree(Node *root, int level){
     if (root == NULL){
         // 若传入的树是空树，直接返回
         return;
     }
     if(root->r_addr != NULL){
-        (*level)++; // 存在下一层可进入，level加1
-        printTree(root->r_addr, level);
+        printTree(root->r_addr, level + 1); // 存在下一层可进入，level加1
     }
-    for (int i = 0; i < *level; i++){
+    for (int i = 0; i < level; i++){
         printf("\t");
     }
     printf("%d%c\n", root->value, get_color(root->color));
     if(root->l_addr != NULL){
-        (*level)++; // 存在下一层可进入，level加1
-        printTree(root->l_addr, level);
+        printTree(root->l_addr, level + 1); // 存在下一层可进入，level加1
     }
-    (*level)--; // 即将返回上一层，level减1
 }
 
 // 保证每次调用printTree前level都自动重置为0
 void print_tree(Node *root){
     int level = 0;
-    printTree(root, &level);
+    printTree(root, level);
 }
 
 // 返回值为被添加节点的指针表示添加成功，为NULL表示已存入相同的值
