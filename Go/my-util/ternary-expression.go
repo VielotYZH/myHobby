@@ -1,6 +1,6 @@
 package my_util
 
-func TernaryExpression(relationalExpression bool, expression1 int, expression2 int) int {
+func TernaryExpression(relationalExpression bool, expression1, expression2 interface{}) interface{} {
 	if relationalExpression {
 		return expression1
 	} else {
